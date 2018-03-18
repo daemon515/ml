@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import quandl
 import os
+import math
+import matplotlib.pyplot as plt
+import datetime
 from stockstats import StockDataFrame
 
 directory = "stock_data"
@@ -52,3 +55,25 @@ def get_stock_dataframe(stockName, dateFrom = '2006-01-01'):
     stock_data['Open'] = stock_data.Open.astype(float)
     stock_data.drop(['Ex-Dividend', 'Split Ratio', 'Open', 'High', 'Close', 'Low', 'Volume'], axis=1, inplace=True)
     return stock_data.loc[dateFrom:]
+
+def get_datetime_from_str(date_str):
+    return datetime.datetime.strptime(date_str, '%Y-%m-%d')
+
+def get_gap_in_months(start_date, end_date):
+    return (end_date.year - start_date.year) * 12 + end_date.month - start_date.month
+
+def plot_graph(ax, test_dates, prediction, actual, title="Title goes here"):
+    print("Test dates start {} end {}".format(test_dates[0], test_dates[-1]))
+    start_date = get_datetime_from_str(test_dates[0])
+    end_date = get_datetime_from_str(test_dates[-1])
+    num_months = get_gap_in_months(start_date, end_date)
+    #print(num_months)
+
+    ax.set_title(title)
+    ax.set_xticklabels('')
+    #ax.set_xticks([datetime.date(start_year+int(i/12),1+i%12,1) for i in range(num_months)])
+    ax.set_xticks([datetime.date(start_date.year+int(i),1,1) for i in range(1+int(num_months/12))])
+    ax.set_xticklabels([datetime.date(start_date.year+int(i),1,1).strftime('%Y')  for i in range(1+int(num_months/12)+1)])
+    ax.plot(test_dates.astype(datetime.datetime), prediction, 'r-', label = 'predicted')
+    ax.plot(test_dates.astype(datetime.datetime), actual, 'g-.', label = 'actual')
+    ax.legend(loc='upper right', shadow=True).get_frame().set_facecolor('0.8')
